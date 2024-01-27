@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { NostrFetcher } from 'nostr-fetch';
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 
-	let npub = $page.url.searchParams.get('npub') ?? '';
+	let npub = '';
 	let events: Event[] = [];
 
 	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
@@ -30,6 +31,10 @@
 			}
 		} catch (error) {}
 	}
+
+	onMount(() => {
+		npub = $page.url.searchParams.get('npub') ?? '';
+	});
 
 	async function fetch(pubkey: string): Promise<void> {
 		const { waitNostr } = await import('nip07-awaiter');
