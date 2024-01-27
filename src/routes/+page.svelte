@@ -6,7 +6,7 @@
 	let npub = '';
 	let events: Event[] = [];
 
-	const defaultRelays = ['wss://nos.lol/'];
+	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
 	const days = 14;
 
 	const now = new Date();
