@@ -24,6 +24,7 @@
 		try {
 			const { type, data: pubkey } = nip19.decode(npub);
 			if (type === 'npub') {
+				events = [];
 				fetch(pubkey);
 				history.replaceState(history.state, '', `${$page.url.pathname}?npub=${npub}`);
 			}
