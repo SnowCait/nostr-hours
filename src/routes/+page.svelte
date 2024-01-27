@@ -14,7 +14,7 @@
 		const date = new Date(new Date().toLocaleDateString());
 		date.setDate(now.getDate() - i);
 		return date;
-	}).reverse();
+	});
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 
 	$: if (npub.startsWith('npub1')) {
