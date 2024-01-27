@@ -2,11 +2,12 @@
 	import { onMount } from 'svelte';
 	import { NostrFetcher } from 'nostr-fetch';
 	import { nip19 } from 'nostr-tools';
-	import type { Event } from 'nostr-typedef';
+	import type { Content, Event } from 'nostr-typedef';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 
 	let npub = '';
+	let metadata: Content.Metadata | undefined;
 	let events: Event[] = [];
 
 	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
@@ -48,6 +49,16 @@
 				: defaultRelays;
 
 		const fetcher = NostrFetcher.init();
+		fetcher.fetchLastEvent(relays, { kinds: [0], authors: [pubkey] }).then((event) => {
+			if (event === undefined) {
+				return;
+			}
+			try {
+				metadata = JSON.parse(event.content);
+			} catch (error) {
+				console.warn('[failed to parse metadata]', error, event);
+			}
+		});
 		const iterator = fetcher.allEventsIterator(
 			relays,
 			{ authors: [pubkey] },
@@ -131,6 +142,13 @@
 	</div>
 </form>
 
+{#if metadata !== undefined}
+	<article>
+		<img src={metadata.picture} alt="" />
+		<div>{metadata.display_name ? metadata.display_name : metadata.name}</div>
+	</article>
+{/if}
+
 <table>
 	<thead>
 		<tr>
@@ -165,6 +183,12 @@
 
 	form div {
 		margin: 1rem auto;
+	}
+
+	img {
+		width: 80px;
+		height: 80px;
+		object-fit: cover;
 	}
 
 	table {
