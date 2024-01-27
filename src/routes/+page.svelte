@@ -14,7 +14,7 @@
 
 	const now = new Date();
 	const dates = Array.from({ length: days }, (_, i) => {
-		const date = new Date(new Date().toLocaleDateString());
+		const date = new Date(new Date().toDateString());
 		date.setDate(now.getDate() - i);
 		return date;
 	});
