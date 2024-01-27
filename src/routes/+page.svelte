@@ -12,7 +12,7 @@
 	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
 	const days = 14;
 	let displayEventCount = false;
-  let displayGradation = false;
+	let displayGradation = false;
 
 	const now = new Date();
 	const dates = Array.from({ length: days }, (_, i) => {
@@ -51,9 +51,10 @@
 		const iterator = fetcher.allEventsIterator(
 			relays,
 			{ authors: [pubkey] },
-			{ since: Math.floor(dates[dates.length-1].getTime() / 1000),
+			{
+				since: Math.floor(dates[dates.length - 1].getTime() / 1000),
 				until: Math.floor(dates[0].getTime() / 1000) + 1 * 24 * 60 * 60
-			 }
+			}
 		);
 		for await (const event of iterator) {
 			console.log(event);
@@ -81,29 +82,30 @@
 		if (!displayGradation) {
 			return 'rgb(128, 0, 128)';
 		}
-		const red = 255 - (Math.min(eventsCount, maxEvents) / maxEvents * 127);
-		const green = 255 - (Math.min(eventsCount, maxEvents) / maxEvents * 255);
-		const blue = 255 - (Math.min(eventsCount, maxEvents) / maxEvents * 127);
+		const red = 255 - (Math.min(eventsCount, maxEvents) / maxEvents) * 127;
+		const green = 255 - (Math.min(eventsCount, maxEvents) / maxEvents) * 255;
+		const blue = 255 - (Math.min(eventsCount, maxEvents) / maxEvents) * 127;
 
 		return `rgb(${red}, ${green}, ${blue})`;
 	}
 
 	let eventsCountPerHour: number[][] = [];
 
-	$: eventsCountPerHour = dates.map(date =>
-		hours.map(hour =>
-			events.filter(event => {
-				const createdAt = event.created_at * 1000;
-				return (
-					date.getTime() + hour * 60 * 60 * 1000 <= createdAt &&
-					createdAt < date.getTime() + (hour + 1) * 60 * 60 * 1000
-				);
-			}).length
+	$: eventsCountPerHour = dates.map((date) =>
+		hours.map(
+			(hour) =>
+				events.filter((event) => {
+					const createdAt = event.created_at * 1000;
+					return (
+						date.getTime() + hour * 60 * 60 * 1000 <= createdAt &&
+						createdAt < date.getTime() + (hour + 1) * 60 * 60 * 1000
+					);
+				}).length
 		)
 	);
 
 	function totalEventsForDate(index: number) {
-			return eventsCountPerHour[index] ? eventsCountPerHour[index].reduce((a, b) => a + b, 0) : 0;
+		return eventsCountPerHour[index] ? eventsCountPerHour[index].reduce((a, b) => a + b, 0) : 0;
 	}
 </script>
 
@@ -116,12 +118,12 @@
 </form>
 
 <label>
-	<input type="checkbox" bind:checked={displayEventCount}>
+	<input type="checkbox" bind:checked={displayEventCount} />
 	Display Event Count
 </label>
 
 <label>
-	<input type="checkbox" bind:checked={displayGradation}>
+	<input type="checkbox" bind:checked={displayGradation} />
 	Display Gradation
 </label>
 
@@ -140,7 +142,8 @@
 				<td>{date.toLocaleDateString()}</td>
 				{#each hours as hour, hourIndex}
 					<td
-						style:background-color={calculateColorIntensity(eventsCountPerHour[index][hourIndex])}>
+						style:background-color={calculateColorIntensity(eventsCountPerHour[index][hourIndex])}
+					>
 						{displayEventCount ? eventsCountPerHour[index][hourIndex] : ''}
 					</td>
 				{/each}
