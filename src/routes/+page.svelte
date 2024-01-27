@@ -2,8 +2,10 @@
 	import { NostrFetcher } from 'nostr-fetch';
 	import { nip19 } from 'nostr-tools';
 	import type { Event } from 'nostr-typedef';
+	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 
-	let npub = '';
+	let npub = $page.url.searchParams.get('npub') ?? '';
 	let events: Event[] = [];
 
 	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
@@ -17,12 +19,13 @@
 	});
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 
-	$: if (npub.startsWith('npub1')) {
+	$: if (npub.startsWith('npub1') && browser) {
 		console.log(npub);
 		try {
 			const { type, data: pubkey } = nip19.decode(npub);
 			if (type === 'npub') {
 				fetch(pubkey);
+				history.replaceState(history.state, '', `${$page.url.pathname}?npub=${npub}`);
 			}
 		} catch (error) {}
 	}
