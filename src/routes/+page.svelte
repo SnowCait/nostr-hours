@@ -75,7 +75,7 @@
 	}
 
 	function calculateColorIntensity(eventsCount: number) {
-		let maxEvents = 60;
+		const maxEvents = 60;
 		if (eventsCount === 0) {
 			return 'rgb(255, 255, 255)';
 		}
@@ -113,19 +113,23 @@
 <p>How many hours do you spend in Nostr?</p>
 
 <form on:submit|preventDefault>
-	<input type="text" bind:value={npub} placeholder="npub1..." />
-	<input type="button" on:click={inputNpub} value="from NIP-07" />
+	<div>
+		<input type="text" bind:value={npub} placeholder="npub1..." />
+		<input type="button" on:click={inputNpub} value="from NIP-07" />
+	</div>
+
+	<div>
+		<label>
+			<input type="checkbox" bind:checked={displayEventCount} />
+			Display Event Count
+		</label>
+
+		<label>
+			<input type="checkbox" bind:checked={displayGradation} />
+			Display Gradation
+		</label>
+	</div>
 </form>
-
-<label>
-	<input type="checkbox" bind:checked={displayEventCount} />
-	Display Event Count
-</label>
-
-<label>
-	<input type="checkbox" bind:checked={displayGradation} />
-	Display Gradation
-</label>
 
 <table>
 	<thead>
@@ -134,6 +138,7 @@
 			{#each hours as hour}
 				<th>{hour}</th>
 			{/each}
+			<th></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -156,6 +161,10 @@
 <style>
 	* {
 		text-align: center;
+	}
+
+	form div {
+		margin: 1rem auto;
 	}
 
 	table {
