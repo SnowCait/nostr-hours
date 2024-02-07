@@ -46,7 +46,7 @@
 		const relaysResult = await nostr?.getRelays?.();
 		const relays =
 			relaysResult !== undefined
-				? Object.entries(relaysResult).map(([relay]) => relay)
+				? [...new Set([...Object.entries(relaysResult).map(([relay]) => relay), ...defaultRelays])]
 				: defaultRelays;
 
 		const fetcher = NostrFetcher.init();
