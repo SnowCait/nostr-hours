@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { NostrFetcher } from 'nostr-fetch';
-	import { nip19, SimplePool } from 'nostr-tools';
+	import { nip19 } from 'nostr-tools';
 	import type { Content, Event, Nip07 } from 'nostr-typedef';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
@@ -86,34 +86,20 @@
 		}
 	}
 
-	const getRelaysWithKind10002 = (relays: string[], pubkey: string): Promise<Nip07.GetRelayResult | undefined> => {
-		const pool = new SimplePool();
-		const filters = [{kinds: [10002], authors: [pubkey]}];
-		return new Promise((resolve) => {
-			const events: Event[] = [];
-			const onevent = (ev: Event) => {
-				events.push(ev);
-			};
-			const oneose = () => {
-				sub.close();
-				if (events.length === 0) {
-					resolve(undefined);
-				}
-				else {
-					const ev: Event = events.reduce((a: Event, b: Event) => a.created_at > b.created_at ? a : b);
-					const newRelays: Nip07.GetRelayResult = {};
-					for (const tag of ev.tags.filter(tag => tag.length >= 2 && tag[0] === 'r')) {
-						newRelays[tag[1]] = {'read': tag.length === 2 || tag[2] === 'read', 'write': tag.length === 2 || tag[2] === 'write'};
-					}
-					resolve(newRelays);
-				}
-			};
-			const sub = pool.subscribeMany(
-				relays,
-				filters,
-				{ onevent, oneose }
-			);
-		});
+	async function getRelaysWithKind10002(relays: string[], pubkey: string): Promise<Nip07.GetRelayResult | undefined> {
+		const fetcher = NostrFetcher.init();
+		const ev: Event | undefined = await fetcher.fetchLastEvent(
+			relays,
+			{kinds: [10002], authors: [pubkey]},
+		);
+		if (ev === undefined) {
+			return undefined;
+		}
+		const newRelays: Nip07.GetRelayResult = {};
+		for (const tag of ev.tags.filter(tag => tag.length >= 2 && tag[0] === 'r')) {
+			newRelays[tag[1]] = {'read': tag.length === 2 || tag[2] === 'read', 'write': tag.length === 2 || tag[2] === 'write'};
+		}
+		return newRelays;
 	};
 
 	async function inputNpub(): Promise<void> {
