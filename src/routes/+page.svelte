@@ -99,6 +99,7 @@
 		for (const tag of ev.tags.filter(tag => tag.length >= 2 && tag[0] === 'r')) {
 			newRelays[tag[1]] = {'read': tag.length === 2 || tag[2] === 'read', 'write': tag.length === 2 || tag[2] === 'write'};
 		}
+		fetcher.shutdown();
 		return newRelays;
 	};
 
