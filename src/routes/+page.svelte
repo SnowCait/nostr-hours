@@ -51,13 +51,23 @@
 		}
 		const relaysWithNIP07 =
 			relaysResultNIP07 !== undefined
-				? [...new Set([...Object.entries(relaysResultNIP07).map(([relay]) => relay), ...defaultRelays])]
+				? [
+						...new Set([
+							...Object.entries(relaysResultNIP07).map(([relay]) => relay),
+							...defaultRelays
+						])
+					]
 				: defaultRelays;
 
 		const relaysResultKind10002 = await getRelaysWithKind10002(relaysWithNIP07, pubkey);
 		const relays =
 			relaysResultKind10002 !== undefined
-				? [...new Set([...Object.entries(relaysResultKind10002).map(([relay]) => relay), ...relaysWithNIP07])]
+				? [
+						...new Set([
+							...Object.entries(relaysResultKind10002).map(([relay]) => relay),
+							...relaysWithNIP07
+						])
+					]
 				: relaysWithNIP07;
 
 		const fetcher = NostrFetcher.init();
@@ -77,6 +87,9 @@
 			{
 				since: Math.floor(dates[dates.length - 1].getTime() / 1000),
 				until: Math.floor(dates[0].getTime() / 1000) + 1 * 24 * 60 * 60
+			},
+			{
+				skipVerification: true
 			}
 		);
 		for await (const event of iterator) {
@@ -86,22 +99,28 @@
 		}
 	}
 
-	async function getRelaysWithKind10002(relays: string[], pubkey: string): Promise<Nip07.GetRelayResult | undefined> {
+	async function getRelaysWithKind10002(
+		relays: string[],
+		pubkey: string
+	): Promise<Nip07.GetRelayResult | undefined> {
 		const fetcher = NostrFetcher.init();
-		const ev: Event | undefined = await fetcher.fetchLastEvent(
-			relays,
-			{kinds: [10002], authors: [pubkey]},
-		);
+		const ev: Event | undefined = await fetcher.fetchLastEvent(relays, {
+			kinds: [10002],
+			authors: [pubkey]
+		});
 		if (ev === undefined) {
 			return undefined;
 		}
 		const newRelays: Nip07.GetRelayResult = {};
-		for (const tag of ev.tags.filter(tag => tag.length >= 2 && tag[0] === 'r')) {
-			newRelays[tag[1]] = {'read': tag.length === 2 || tag[2] === 'read', 'write': tag.length === 2 || tag[2] === 'write'};
+		for (const tag of ev.tags.filter((tag) => tag.length >= 2 && tag[0] === 'r')) {
+			newRelays[tag[1]] = {
+				read: tag.length === 2 || tag[2] === 'read',
+				write: tag.length === 2 || tag[2] === 'write'
+			};
 		}
 		fetcher.shutdown();
 		return newRelays;
-	};
+	}
 
 	async function inputNpub(): Promise<void> {
 		const { waitNostr } = await import('nip07-awaiter');
