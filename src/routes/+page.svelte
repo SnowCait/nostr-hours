@@ -217,6 +217,7 @@
 		width: 80px;
 		height: 80px;
 		object-fit: cover;
+		border-radius: 50%;
 	}
 
 	table {
