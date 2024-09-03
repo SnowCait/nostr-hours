@@ -77,6 +77,9 @@
 			{
 				since: Math.floor(dates[dates.length - 1].getTime() / 1000),
 				until: Math.floor(dates[0].getTime() / 1000) + 1 * 24 * 60 * 60
+			},
+			{
+				skipVerification: true
 			}
 		);
 		for await (const event of iterator) {
