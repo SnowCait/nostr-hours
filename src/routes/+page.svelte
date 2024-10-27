@@ -210,7 +210,7 @@
 	<tbody>
 		{#each dates as date, index}
 			<tr>
-				<td class={`day day-${date.getDay()}`}>{date.toLocaleDateString()}</td>
+				<td class="day-{date.getDay()}">{date.toLocaleDateString()}</td>
 				{#each hours as hour, hourIndex}
 					<td
 						style:background-color={calculateColorIntensity(eventsCountPerHour[index][hourIndex])}
@@ -249,13 +249,10 @@
 		width: 2rem;
 		text-align: center;
 	}
-	.day {
-		background-color: rgba(100, 100, 100, 0.3);
-	}
 	.day-0 {
-		background-color: rgba(200, 50, 50, 0.3);
+		background-color: rgba(200, 50, 50, 0.2);
 	}
 	.day-6 {
-		background-color: rgba(50, 50, 200, 0.3);
+		background-color: rgba(50, 50, 200, 0.2);
 	}
 </style>
