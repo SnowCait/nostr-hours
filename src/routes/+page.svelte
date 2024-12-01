@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { run, createBubbler, preventDefault } from 'svelte/legacy';
+	import { createBubbler, preventDefault } from 'svelte/legacy';
 
 	const bubble = createBubbler();
 	import { onMount } from 'svelte';
@@ -141,7 +141,7 @@
 		return eventsCountPerHour[index] ? eventsCountPerHour[index].reduce((a, b) => a + b, 0) : 0;
 	}
 
-	run(() => {
+	$effect(() => {
 		if (npub.startsWith('npub1') && browser) {
 			console.log(npub);
 			try {
