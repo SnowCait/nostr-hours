@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { createBubbler, preventDefault } from 'svelte/legacy';
-
-	const bubble = createBubbler();
 	import { onMount } from 'svelte';
 	import { NostrFetcher } from 'nostr-fetch';
 	import { nip19 } from 'nostr-tools';
@@ -175,7 +172,7 @@
 <h1>Nostr hours</h1>
 <p>How many hours do you spend in Nostr?</p>
 
-<form onsubmit={preventDefault(bubble('submit'))}>
+<form onsubmit={(e) => e.preventDefault()}>
 	<div>
 		<input type="text" bind:value={npub} placeholder="npub1..." />
 		<input type="button" onclick={inputNpub} value="from NIP-07" />
