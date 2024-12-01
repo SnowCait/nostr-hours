@@ -6,14 +6,14 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 
-	let npub = '';
-	let metadata: Content.Metadata | undefined;
-	let events: Event[] = [];
+	let npub = $state('');
+	let metadata: Content.Metadata | undefined = $state();
+	let events: Event[] = $state.raw([]);
 
 	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
 	const days = 14;
-	let displayEventCount = false;
-	let displayGradation = false;
+	let displayEventCount = $state(false);
+	let displayGradation = $state(false);
 
 	const now = new Date();
 	const dates = Array.from({ length: days }, (_, i) => {
@@ -22,19 +22,6 @@
 		return date;
 	});
 	const hours = Array.from({ length: 24 }, (_, i) => i);
-
-	$: if (npub.startsWith('npub1') && browser) {
-		console.log(npub);
-		try {
-			const { type, data: pubkey } = nip19.decode(npub);
-			if (type === 'npub') {
-				metadata = undefined;
-				events = [];
-				fetch(pubkey);
-				history.replaceState(history.state, '', `${$page.url.pathname}?npub=${npub}`);
-			}
-		} catch (error) {}
-	}
 
 	onMount(() => {
 		npub = $page.url.searchParams.get('npub') ?? '';
@@ -94,8 +81,7 @@
 		);
 		for await (const event of iterator) {
 			console.log(event);
-			events.push(event);
-			events = events;
+			events = [...events, event];
 		}
 	}
 
@@ -148,33 +134,48 @@
 		return `rgb(${red}, ${green}, ${blue})`;
 	}
 
-	let eventsCountPerHour: number[][] = [];
-
-	$: eventsCountPerHour = dates.map((date) =>
-		hours.map(
-			(hour) =>
-				events.filter((event) => {
-					const createdAt = event.created_at * 1000;
-					return (
-						date.getTime() + hour * 60 * 60 * 1000 <= createdAt &&
-						createdAt < date.getTime() + (hour + 1) * 60 * 60 * 1000
-					);
-				}).length
-		)
-	);
-
 	function totalEventsForDate(index: number) {
 		return eventsCountPerHour[index] ? eventsCountPerHour[index].reduce((a, b) => a + b, 0) : 0;
 	}
+
+	$effect(() => {
+		if (npub.startsWith('npub1') && browser) {
+			console.log(npub);
+			try {
+				const { type, data: pubkey } = nip19.decode(npub);
+				if (type === 'npub') {
+					metadata = undefined;
+					events = [];
+					fetch(pubkey);
+					history.replaceState(history.state, '', `${$page.url.pathname}?npub=${npub}`);
+				}
+			} catch (error) {}
+		}
+	});
+
+	let eventsCountPerHour = $derived(
+		dates.map((date) =>
+			hours.map(
+				(hour) =>
+					events.filter((event) => {
+						const createdAt = event.created_at * 1000;
+						return (
+							date.getTime() + hour * 60 * 60 * 1000 <= createdAt &&
+							createdAt < date.getTime() + (hour + 1) * 60 * 60 * 1000
+						);
+					}).length
+			)
+		)
+	);
 </script>
 
 <h1>Nostr hours</h1>
 <p>How many hours do you spend in Nostr?</p>
 
-<form on:submit|preventDefault>
+<form onsubmit={(e) => e.preventDefault()}>
 	<div>
 		<input type="text" bind:value={npub} placeholder="npub1..." />
-		<input type="button" on:click={inputNpub} value="from NIP-07" />
+		<input type="button" onclick={inputNpub} value="from NIP-07" />
 	</div>
 
 	<div>
