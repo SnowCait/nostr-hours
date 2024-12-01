@@ -137,8 +137,6 @@
 		return `rgb(${red}, ${green}, ${blue})`;
 	}
 
-	let eventsCountPerHour: number[][] = $state([]);
-
 	function totalEventsForDate(index: number) {
 		return eventsCountPerHour[index] ? eventsCountPerHour[index].reduce((a, b) => a + b, 0) : 0;
 	}
@@ -158,8 +156,8 @@
 		}
 	});
 
-	run(() => {
-		eventsCountPerHour = dates.map((date) =>
+	let eventsCountPerHour = $derived(
+		dates.map((date) =>
 			hours.map(
 				(hour) =>
 					events.filter((event) => {
@@ -170,8 +168,8 @@
 						);
 					}).length
 			)
-		);
-	});
+		)
+	);
 </script>
 
 <h1>Nostr hours</h1>
