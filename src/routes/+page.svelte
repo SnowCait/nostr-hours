@@ -11,7 +11,7 @@
 
 	let npub = $state('');
 	let metadata: Content.Metadata | undefined = $state();
-	let events: Event[] = $state([]);
+	let events: Event[] = $state.raw([]);
 
 	const defaultRelays = ['wss://relay.nostr.band/', 'wss://nos.lol/'];
 	const days = 14;
@@ -84,8 +84,7 @@
 		);
 		for await (const event of iterator) {
 			console.log(event);
-			events.push(event);
-			events = events;
+			events = [...events, event];
 		}
 	}
 
