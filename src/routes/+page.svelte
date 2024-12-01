@@ -26,7 +26,6 @@
 	});
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 
-
 	onMount(() => {
 		npub = $page.url.searchParams.get('npub') ?? '';
 	});
@@ -141,10 +140,10 @@
 
 	let eventsCountPerHour: number[][] = $state([]);
 
-
 	function totalEventsForDate(index: number) {
 		return eventsCountPerHour[index] ? eventsCountPerHour[index].reduce((a, b) => a + b, 0) : 0;
 	}
+
 	run(() => {
 		if (npub.startsWith('npub1') && browser) {
 			console.log(npub);
@@ -159,6 +158,7 @@
 			} catch (error) {}
 		}
 	});
+
 	run(() => {
 		eventsCountPerHour = dates.map((date) =>
 			hours.map(
