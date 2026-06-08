@@ -1,0 +1,47 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    versioning-strategy: "increase-if-necessary"
+    cooldown:
+      default-days: 7
+    groups:
+      nostr:
+        patterns:
+          - "nostr-*"
+          - "nip07-awaiter"
+      svelte:
+        patterns:
+          - "@sveltejs/*"
+          - "svelte"
+          - "svelte-check"
+          - "*-svelte"
+      lint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@typescript-eslint/*"
+          - "@types/eslint"
+          - "prettier"
+          - "typescript"
+          - "tslib"
+      test:
+        patterns:
+          - "@playwright/test"
+          - "vitest"
+      build:
+        patterns:
+          - "vite"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
