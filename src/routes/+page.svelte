@@ -196,6 +196,16 @@
 	</div>
 </form>
 
+<div class="status" aria-live="polite">
+	{#if status === 'error'}
+		<p class="message error" role="alert">Failed to load events: {errorMessage}</p>
+	{:else if status === 'loading'}
+		<p class="message"><span class="spinner"></span> Loading events...</p>
+	{:else if status === 'done' && events.length === 0}
+		<p class="message">No events found in the last {days} days.</p>
+	{/if}
+</div>
+
 {#if metadata !== undefined}
 	<article class="profile">
 		<img src={metadata.picture} alt="" />
@@ -207,16 +217,6 @@
 		<div class="skeleton skeleton-name" class:pulse={status === 'loading'}></div>
 	</div>
 {/if}
-
-<div class="status" aria-live="polite">
-	{#if status === 'error'}
-		<p class="message error" role="alert">Failed to load events: {errorMessage}</p>
-	{:else if status === 'loading'}
-		<p class="message"><span class="spinner"></span> Loading events...</p>
-	{:else if status === 'done' && events.length === 0}
-		<p class="message">No events found in the last {days} days.</p>
-	{/if}
-</div>
 
 <div class="table-scroll">
 	<table class:loading={status === 'loading'}>
@@ -274,7 +274,7 @@
 		align-items: center;
 		gap: var(--space-2);
 		max-width: 34rem;
-		margin: var(--space-3) auto;
+		margin: var(--space-3) auto var(--space-1);
 		padding: var(--space-2);
 		background-color: var(--color-surface);
 		border: 1px solid var(--color-border);
