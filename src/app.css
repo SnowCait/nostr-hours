@@ -1,0 +1,59 @@
+:root {
+	color-scheme: light dark;
+
+	--color-bg: #ffffff;
+	--color-surface: #f6f5f9;
+	--color-text: #201a26;
+	--color-text-muted: #6f6879;
+	--color-border: #e0dce6;
+	--color-accent: #800080;
+	--color-accent-contrast: #ffffff;
+	--heat-rgb: 128 0 128;
+	/* Opaque weekend tints so the sticky date column hides cells scrolling under it */
+	--color-weekend-sun: #f3dcdc;
+	--color-weekend-sat: #dcdcf3;
+	--color-error-bg: #fbe9e9;
+	--color-error-text: #a03030;
+
+	--radius: 8px;
+	--radius-sm: 3px;
+	--space-1: 0.5rem;
+	--space-2: 1rem;
+	--space-3: 2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-bg: #17141b;
+		--color-surface: #211d27;
+		--color-text: #eae6ef;
+		--color-text-muted: #9d95a8;
+		--color-border: #38323f;
+		--color-accent: #c078c0;
+		--color-accent-contrast: #1a121a;
+		--heat-rgb: 186 104 200;
+		--color-weekend-sun: #33222a;
+		--color-weekend-sat: #232236;
+		--color-error-bg: #3a2226;
+		--color-error-text: #f0a0a0;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		sans-serif;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
