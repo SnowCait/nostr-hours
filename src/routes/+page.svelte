@@ -201,47 +201,53 @@
 		<img src={metadata.picture} alt="" />
 		<div class="profile-name">{metadata.display_name ? metadata.display_name : metadata.name}</div>
 	</article>
-{/if}
-
-{#if status === 'error'}
-	<p class="message error" role="alert">Failed to load events: {errorMessage}</p>
-{:else if status === 'loading'}
-	<p class="message" aria-live="polite"><span class="spinner"></span> Loading events...</p>
-{:else if status === 'done' && events.length === 0}
-	<p class="message">No events found in the last {days} days.</p>
-{/if}
-
-{#if status !== 'idle'}
-	<div class="table-scroll">
-		<table>
-			<thead>
-				<tr>
-					<th></th>
-					{#each hours as hour}
-						<th>{hour}</th>
-					{/each}
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each dates as date, index}
-					<tr>
-						<td class="date day-{date.getDay()}">{date.toLocaleDateString()}</td>
-						{#each hours as hour, hourIndex}
-							<td
-								class="heat"
-								style:background-color={heatColor(eventsCountPerHour[index][hourIndex])}
-							>
-								{displayEventCount ? eventsCountPerHour[index][hourIndex] : ''}
-							</td>
-						{/each}
-						<td>{displayEventCount ? totalEventsForDate(index) : ''}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+{:else}
+	<div class="profile" aria-hidden="true">
+		<div class="skeleton skeleton-avatar" class:pulse={status === 'loading'}></div>
+		<div class="skeleton skeleton-name" class:pulse={status === 'loading'}></div>
 	</div>
 {/if}
+
+<div class="status" aria-live="polite">
+	{#if status === 'error'}
+		<p class="message error" role="alert">Failed to load events: {errorMessage}</p>
+	{:else if status === 'loading'}
+		<p class="message"><span class="spinner"></span> Loading events...</p>
+	{:else if status === 'done' && events.length === 0}
+		<p class="message">No events found in the last {days} days.</p>
+	{/if}
+</div>
+
+<div class="table-scroll">
+	<table class:loading={status === 'loading'}>
+		<thead>
+			<tr>
+				<th></th>
+				{#each hours as hour}
+					<th>{hour}</th>
+				{/each}
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{#each dates as date, index}
+				<tr>
+					<td class="date day-{date.getDay()}">{date.toLocaleDateString()}</td>
+					{#each hours as hour, hourIndex}
+						<td
+							class="heat"
+							class:empty={eventsCountPerHour[index][hourIndex] === 0}
+							style:background-color={heatColor(eventsCountPerHour[index][hourIndex])}
+						>
+							{displayEventCount ? eventsCountPerHour[index][hourIndex] : ''}
+						</td>
+					{/each}
+					<td>{displayEventCount ? totalEventsForDate(index) : ''}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
 
 <style>
 	h1 {
@@ -326,15 +332,15 @@
 
 	.profile {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		gap: var(--space-2);
+		gap: var(--space-1);
 		margin: var(--space-2) auto;
 	}
 
 	.profile img {
-		width: 64px;
-		height: 64px;
+		width: 80px;
+		height: 80px;
 		object-fit: cover;
 		border-radius: 50%;
 		border: 2px solid var(--color-border);
@@ -344,14 +350,50 @@
 		font-weight: 600;
 	}
 
+	.skeleton {
+		background-color: var(--color-surface);
+		border: 1px solid var(--color-border);
+	}
+
+	.skeleton-avatar {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+	}
+
+	.skeleton-name {
+		width: 8rem;
+		height: 1.2rem;
+		margin: 0.15rem 0;
+		border-radius: var(--radius-sm);
+	}
+
+	.skeleton.pulse {
+		animation: pulse 1.2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		50% {
+			opacity: 0.45;
+		}
+	}
+
+	/* Fixed-height slot so messages appearing/disappearing don't shift the table */
+	.status {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 3rem;
+	}
+
 	.message {
+		margin: 0;
 		text-align: center;
 		color: var(--color-text-muted);
 	}
 
 	.error {
 		max-width: 34rem;
-		margin: var(--space-2) auto;
 		padding: var(--space-1) var(--space-2);
 		border-radius: var(--radius-sm);
 		background-color: var(--color-error-bg);
@@ -404,6 +446,28 @@
 	td.heat {
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-sm);
+	}
+
+	/* Animated background wins over the inline style, so empty cells pulse while loading */
+	table.loading td.heat.empty {
+		animation: cell-pulse 1.2s ease-in-out infinite;
+	}
+
+	@keyframes cell-pulse {
+		0%,
+		100% {
+			background-color: var(--color-surface);
+		}
+		50% {
+			background-color: transparent;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.skeleton.pulse,
+		table.loading td.heat.empty {
+			animation: none;
+		}
 	}
 
 	td.date {
