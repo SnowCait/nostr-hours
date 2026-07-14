@@ -232,7 +232,12 @@
 		<tbody>
 			{#each dates as date, index}
 				<tr>
-					<td class="date day-{date.getDay()}">{date.toLocaleDateString()}</td>
+					<td class="date day-{date.getDay()}">
+						<span class="date-full">{date.toLocaleDateString()}</span>
+						<span class="date-short"
+							>{date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}</span
+						>
+					</td>
 					{#each hours as hour, hourIndex}
 						<td
 							class="heat"
@@ -419,8 +424,7 @@
 
 	.table-scroll {
 		overflow-x: auto;
-		margin: var(--space-3) calc(-1 * var(--space-2)) 0;
-		padding: 0 var(--space-2);
+		margin: var(--space-3) 0 0;
 	}
 
 	table {
@@ -441,6 +445,16 @@
 	th {
 		color: var(--color-text-muted);
 		font-weight: 500;
+	}
+
+	th:first-child {
+		position: sticky;
+		left: 0;
+		z-index: 1;
+		background-color: var(--color-bg);
+		box-shadow:
+			-2px 0 var(--color-bg),
+			2px 0 var(--color-bg);
 	}
 
 	td.heat {
@@ -477,13 +491,31 @@
 		padding: 0 0.5rem;
 		background-color: var(--color-bg);
 		white-space: nowrap;
+		/* Cover the border-spacing gaps so passing cells don't peek through */
+		box-shadow:
+			-2px 0 var(--color-bg),
+			2px 0 var(--color-bg);
 	}
 
-	.day-0 {
+	td.date.day-0 {
 		background-color: var(--color-weekend-sun);
 	}
 
-	.day-6 {
+	td.date.day-6 {
 		background-color: var(--color-weekend-sat);
+	}
+
+	.date-short {
+		display: none;
+	}
+
+	@media (max-width: 640px) {
+		.date-full {
+			display: none;
+		}
+
+		.date-short {
+			display: inline;
+		}
 	}
 </style>
