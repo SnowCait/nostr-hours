@@ -29,15 +29,17 @@
 		npub = $page.url.searchParams.get('npub') ?? '';
 	});
 
-	async function fetch(pubkey: string): Promise<void> {
+	async function fetch(pubkey: string, signal: AbortSignal): Promise<void> {
 		const { waitNostr } = await import('nip07-awaiter');
 		const nostr = await waitNostr(1000);
+		signal.throwIfAborted();
 		let relaysResultNIP07;
 		try {
 			relaysResultNIP07 = await nostr?.getRelays?.();
 		} catch (error) {
 			console.error(error);
 		}
+		signal.throwIfAborted();
 		const relaysWithNIP07 =
 			relaysResultNIP07 !== undefined
 				? [
@@ -48,54 +50,80 @@
 					]
 				: defaultRelays;
 
-		const relaysResultKind10002 = await getRelaysWithKind10002(relaysWithNIP07, pubkey);
-		const relays =
-			relaysResultKind10002 !== undefined
-				? [
-						...new Set([
-							...Object.entries(relaysResultKind10002).map(([relay]) => relay),
-							...relaysWithNIP07
-						])
-					]
-				: relaysWithNIP07;
-
 		const fetcher = NostrFetcher.init();
-		fetcher.fetchLastEvent(relays, { kinds: [0], authors: [pubkey] }).then((event) => {
-			if (event === undefined) {
-				return;
+		try {
+			const relaysResultKind10002 = await getRelaysWithKind10002(
+				fetcher,
+				relaysWithNIP07,
+				pubkey,
+				signal
+			);
+			signal.throwIfAborted();
+			const relays =
+				relaysResultKind10002 !== undefined
+					? [
+							...new Set([
+								...Object.entries(relaysResultKind10002).map(([relay]) => relay),
+								...relaysWithNIP07
+							])
+						]
+					: relaysWithNIP07;
+
+			const metadataPromise = fetcher
+				.fetchLastEvent(relays, { kinds: [0], authors: [pubkey] }, { signal })
+				.then((event) => {
+					if (event === undefined || signal.aborted) {
+						return;
+					}
+					try {
+						metadata = JSON.parse(event.content);
+					} catch (error) {
+						console.warn('[failed to parse metadata]', error, event);
+					}
+				})
+				.catch((error) => {
+					if (!signal.aborted) {
+						console.error(error);
+					}
+				});
+			const iterator = fetcher.allEventsIterator(
+				relays,
+				{ authors: [pubkey] },
+				{
+					since: Math.floor(dates[dates.length - 1].getTime() / 1000),
+					until: Math.floor(dates[0].getTime() / 1000) + 1 * 24 * 60 * 60
+				},
+				{
+					skipVerification: true,
+					signal
+				}
+			);
+			for await (const event of iterator) {
+				signal.throwIfAborted();
+				console.log(event);
+				events = [...events, event];
 			}
-			try {
-				metadata = JSON.parse(event.content);
-			} catch (error) {
-				console.warn('[failed to parse metadata]', error, event);
-			}
-		});
-		const iterator = fetcher.allEventsIterator(
-			relays,
-			{ authors: [pubkey] },
-			{
-				since: Math.floor(dates[dates.length - 1].getTime() / 1000),
-				until: Math.floor(dates[0].getTime() / 1000) + 1 * 24 * 60 * 60
-			},
-			{
-				skipVerification: true
-			}
-		);
-		for await (const event of iterator) {
-			console.log(event);
-			events = [...events, event];
+			signal.throwIfAborted();
+			await metadataPromise;
+		} finally {
+			fetcher.shutdown();
 		}
 	}
 
 	async function getRelaysWithKind10002(
+		fetcher: NostrFetcher,
 		relays: string[],
-		pubkey: string
+		pubkey: string,
+		signal: AbortSignal
 	): Promise<Nip07.GetRelayResult | undefined> {
-		const fetcher = NostrFetcher.init();
-		const ev: Event | undefined = await fetcher.fetchLastEvent(relays, {
-			kinds: [10002],
-			authors: [pubkey]
-		});
+		const ev: Event | undefined = await fetcher.fetchLastEvent(
+			relays,
+			{
+				kinds: [10002],
+				authors: [pubkey]
+			},
+			{ signal }
+		);
 		if (ev === undefined) {
 			return undefined;
 		}
@@ -106,7 +134,6 @@
 				write: tag.length === 2 || tag[2] === 'write'
 			};
 		}
-		fetcher.shutdown();
 		return newRelays;
 	}
 
@@ -144,13 +171,27 @@
 					events = [];
 					status = 'loading';
 					errorMessage = '';
-					fetch(pubkey)
-						.then(() => (status = 'done'))
+					const controller = new AbortController();
+					fetch(pubkey, controller.signal)
+						.then(() => {
+							if (!controller.signal.aborted) {
+								status = 'done';
+							}
+						})
 						.catch((error) => {
+							if (controller.signal.aborted) {
+								return;
+							}
 							status = 'error';
 							errorMessage = error instanceof Error ? error.message : 'Failed to fetch events.';
 						});
 					history.replaceState(history.state, '', `${$page.url.pathname}?npub=${npub}`);
+					return () => {
+						controller.abort();
+						if (status === 'loading') {
+							status = 'idle';
+						}
+					};
 				}
 			} catch (error) {
 				// Ignore partial input while typing
